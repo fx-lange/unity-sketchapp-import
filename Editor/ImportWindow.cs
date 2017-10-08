@@ -155,7 +155,13 @@ public class ImportWindow : EditorWindow
                 image.sprite = spr;
                 image.SetNativeSize();
                 image.color = new Color(255f, 255f, 255f, 50f); //?
+            }else
+            {
+                image.enabled = false;
             }
+        }else
+        {
+            image.enabled = false;
         }
 
         JArray children = (JArray)json["children"];
