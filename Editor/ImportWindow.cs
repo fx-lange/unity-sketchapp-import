@@ -104,6 +104,7 @@ public class ImportWindow : EditorWindow
                 JArray json = JArray.Parse(fullJsonAsText);
 
                 //parse json
+                Undo.RegisterFullObjectHierarchyUndo(rootTransform, "Import Layers");
                 Parse((JObject)json[0],rootTransform);
 
                 //finish by refreshing all the assets
