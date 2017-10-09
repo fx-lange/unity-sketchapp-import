@@ -7,7 +7,7 @@ using System.IO;
 using Newtonsoft.Json.Linq;
 
 
-public class ImportWindow : EditorWindow
+public class SketchImportWindow : EditorWindow
 {
     
     //private members for parsing the json
@@ -21,10 +21,10 @@ public class ImportWindow : EditorWindow
     Transform rootTransform = null;
 
     //Create a Menu Item so we can open this window
-    [MenuItem("Window/Import Window")]
+    [MenuItem("Window/Sketch Import Window")]
     static void OpenImportWindow()
     {
-        ImportWindow window = EditorWindow.GetWindow<ImportWindow>(false, "Import");
+        SketchImportWindow window = EditorWindow.GetWindow<SketchImportWindow>(false, "Sketch Import");
         window.minSize = new Vector2(140, 130);
     }  
 
