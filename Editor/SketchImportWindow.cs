@@ -21,7 +21,7 @@ public class SketchImportWindow : EditorWindow
     Transform rootTransform = null;
 
     //Create a Menu Item so we can open this window
-    [MenuItem("Window/Sketch Import Window")]
+    [MenuItem("Window/Sketch Import")]
     static void OpenImportWindow()
     {
         SketchImportWindow window = EditorWindow.GetWindow<SketchImportWindow>(false, "Sketch Import");
@@ -39,14 +39,14 @@ public class SketchImportWindow : EditorWindow
         
 
         //SOURCE
-        GUILayout.Label("Source Folder:",EditorStyles.boldLabel);
+        GUILayout.Label("Sketch Export:",EditorStyles.boldLabel);
         if (GUILayout.Button(importFolder, EditorStyles.objectField))
         {
             OnSelectButton();
         }
         
         //ROOT TRANSFORM
-        GUILayout.Label("Root Transform:", EditorStyles.boldLabel);
+        GUILayout.Label("Root:", EditorStyles.boldLabel);
         rootTransform = EditorGUILayout.ObjectField(rootTransform, typeof(Transform),true) as Transform;
 
         GUILayout.Space(10);

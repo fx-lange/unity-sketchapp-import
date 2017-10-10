@@ -19,9 +19,9 @@ From the export folder we are only interested in the `imported` subfolder, where
 ### Import to Unity
 
 * Inside Unity make sure that `Editor Settings/Default Behavior Mode` is set to **2D**, so the assets will be imported as sprites.
-* Open the plugin via `Window/Sketch Import Window`
-* Select the `layers.json` from your Sketch export as your *source* (inside the `imported` subfolder as mentioned above).
-* Select an UI component (like Canvas,Panel,...) inside your scene as the *root* for your imported UI layers.
+* Open the plugin via `Window/Sketch Import
+* Select the `layers.json` from your *Sketch Export* (inside the `imported` subfolder as mentioned above).
+* Select an UI component (like Canvas,Panel,...) inside your scene as the *Root* for your imported UI layers.
 
 
 ## Dependencies
