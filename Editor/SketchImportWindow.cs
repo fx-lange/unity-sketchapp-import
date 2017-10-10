@@ -194,7 +194,7 @@ public class SketchImportWindow : EditorWindow
             {
                 string imagePath = Path.Combine(importFolder, (string)localImagePath);
                 
-                if (File.Exists(imagePath) && imagePath.EndsWith(".png"))
+                if (File.Exists(imagePath))
                 {
                     string imageFileName = (string)localImagePath;
                     imageFileName = imageFileName.Replace("images/", ""); //TODO regex
