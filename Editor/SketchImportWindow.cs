@@ -16,6 +16,7 @@ public class SketchImportWindow : EditorWindow
 
     //private members for sprites and images
     string spriteAssetFolder = "Imported";
+    string spriteAssetGUID = null;
 
     //parent transform 
     Transform rootTransform = null;
@@ -30,13 +31,14 @@ public class SketchImportWindow : EditorWindow
 
     void OnGUI()
     {
-        //TEST BUTTONS
+        ////TEST BUTTONS
         //if (GUILayout.Button("Test Button", GUILayout.Height(30)))
         //{
-        //    Debug.Log("Test Button Pressed");
-        //    onTestButton();
+        //    string guid = AssetDatabase.CreateFolder("Assets", importFolder);
+        //    string newFolderPath = AssetDatabase.GUIDToAssetPath(guid);
+        //    Debug.Log(newFolderPath);
         //}
-        
+
 
         //SOURCE
         GUILayout.Label("Sketch Export:",EditorStyles.boldLabel);
@@ -97,8 +99,8 @@ public class SketchImportWindow : EditorWindow
             if (File.Exists(jsonPath))
             {
                 //folder to store sprites
-                AssetDatabase.CreateFolder("Assets", spriteAssetFolder);
-
+                spriteAssetGUID = AssetDatabase.CreateFolder("Assets", spriteAssetFolder);
+                
                 //read & parse text to json
                 string fullJsonAsText = File.ReadAllText(jsonPath);
                 JArray json = JArray.Parse(fullJsonAsText);
@@ -193,7 +195,7 @@ public class SketchImportWindow : EditorWindow
                     string imageFileName = (string)localImagePath;
                     imageFileName = imageFileName.Replace("images/", ""); //TODO regex
 
-                    string destFolder = Path.Combine("Assets", spriteAssetFolder);
+                    string destFolder = AssetDatabase.GUIDToAssetPath(spriteAssetGUID);
                     string spriteDest = Path.Combine(destFolder, imageFileName);
 
                     File.Copy(imagePath, spriteDest);
