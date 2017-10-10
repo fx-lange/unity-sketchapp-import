@@ -15,7 +15,7 @@ public class SketchImportWindow : EditorWindow
     string importFolder = "";
 
     //private members for sprites and images
-    string spriteAssetFolder = "Imported";
+    string spriteAssetSubFolder = "sprites";
     string spriteAssetGUID = null;
 
     //parent transform 
@@ -99,7 +99,11 @@ public class SketchImportWindow : EditorWindow
             if (File.Exists(jsonPath))
             {
                 //folder to store sprites
-                spriteAssetGUID = AssetDatabase.CreateFolder("Assets", spriteAssetFolder);
+                if (!AssetDatabase.IsValidFolder("Assets/Imported"))
+                {
+                    AssetDatabase.CreateFolder("Assets","Imported");
+                }
+                spriteAssetGUID = AssetDatabase.CreateFolder("Assets/Imported", spriteAssetSubFolder);
                 
                 //read & parse text to json
                 string fullJsonAsText = File.ReadAllText(jsonPath);
