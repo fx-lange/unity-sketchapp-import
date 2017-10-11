@@ -61,16 +61,9 @@ public class SketchImportWindow : EditorWindow
         GUI.enabled = true;
     }
 
-    void onTestButton()
+    bool IsFormValid()
     {
-        Object[] objs = AssetDatabase.LoadAllAssetsAtPath("Assets/Import/Prefabs/Image.prefab");
-        Debug.Log(objs.Length);
-
-        Debug.Log(AssetDatabase.IsValidFolder("Assets/Import/Prefabs"));
-
-        Image image = (Image)AssetDatabase.LoadAssetAtPath<Image>( "Assets/Import/Prefabs/Image.prefab");
-        image.name = name;
-        Debug.Log(image.name);
+        return rootTransform != null && !importFolder.Equals("");
     }
 
     void OnSelectButton()
@@ -109,6 +102,11 @@ public class SketchImportWindow : EditorWindow
                 string fullJsonAsText = File.ReadAllText(jsonPath);
                 JArray json = JArray.Parse(fullJsonAsText);
 
+                //create sprites
+                PreCreateSprites((JObject)json[0]);
+                AssetDatabase.SaveAssets();
+                AssetDatabase.Refresh();
+
                 //parse json
                 Undo.RegisterFullObjectHierarchyUndo(rootTransform, "Import Layers");
                 Parse((JObject)json[0],rootTransform,Vector2.zero);
@@ -119,6 +117,24 @@ public class SketchImportWindow : EditorWindow
 
         }
     }
+
+    void PreCreateSprites(JObject json)
+    {
+        //SPRITE
+        JToken jsonImage = json["image"];
+        if (jsonImage != null && jsonImage.Type != JTokenType.Null)
+        {
+            CreateSprite(jsonImage);
+        }
+
+        //CHILDREN
+        JArray children = (JArray)json["children"];
+        for (int i = children.Count - 1; i >= 0; --i)
+        {
+            PreCreateSprites((JObject)children[i]);
+        }
+    }
+   
 
     void Parse(JObject json,RectTransform parent, Vector2 parentPos)
     {
@@ -147,7 +163,7 @@ public class SketchImportWindow : EditorWindow
 
             jsonFrame = jsonImage["frame"];
 
-            Sprite spr = CreateSprite(json["image"]);
+            Sprite spr = GetSprite(jsonImage);
             if (spr != null)
             {
                 image.sprite = spr;
@@ -190,47 +206,51 @@ public class SketchImportWindow : EditorWindow
         }
     }
 
-    bool IsFormValid()
+    void CreateSprite(JToken jsonImage)
     {
-        return rootTransform != null && !importFolder.Equals("");
-    }
-
-    Sprite CreateSprite(JToken jsonImage)
-    {
-
         // http://stackoverflow.com/questions/24066400/checking-for-empty-null-jtoken-in-a-jobject
         if (jsonImage != null && jsonImage.Type != JTokenType.Null)
         {
-            JToken localImagePath = jsonImage["path"];
+            string localImagePath = (string)jsonImage["path"];
 
             if (localImagePath != null)
             {
-                string imagePath = Path.Combine(importFolder, (string)localImagePath);
+                string imagePath = Path.Combine(importFolder, localImagePath);
                 
                 if (File.Exists(imagePath))
                 {
-                    string imageFileName = (string)localImagePath;
-                    imageFileName = imageFileName.Replace("images/", ""); //TODO regex
 
-                    string destFolder = AssetDatabase.GUIDToAssetPath(spriteAssetGUID);
-                    string spriteDest = Path.Combine(destFolder, imageFileName);
-
+                    string spriteDest = GetSpriteLocation(localImagePath);
                     File.Copy(imagePath, spriteDest);
-
-                    AssetDatabase.SaveAssets();
-                    AssetDatabase.Refresh();
-
-                    Sprite sprite = (Sprite)AssetDatabase.LoadAssetAtPath(spriteDest, typeof(Sprite));
-                    return sprite;
-                }
-                else
-                {
-                    Debug.LogWarning("Not a png or doesn't exist:" + imagePath);
                 }
             }
-
         }
-        return null;
     }
 
+    Sprite GetSprite(JToken jsonImage)
+    {
+        string localImagePath = (string)jsonImage["path"];
+        string spriteLoc = GetSpriteLocation(localImagePath);
+        return (Sprite)AssetDatabase.LoadAssetAtPath(spriteLoc, typeof(Sprite));
+    }
+
+    string GetSpriteLocation(string localImagePath)
+    {
+        string imageFileName = Path.GetFileName(localImagePath);
+
+        string destFolder = AssetDatabase.GUIDToAssetPath(spriteAssetGUID);
+        return Path.Combine(destFolder, imageFileName);
+    }
+
+    void onTestButton()
+    {
+        Object[] objs = AssetDatabase.LoadAllAssetsAtPath("Assets/Import/Prefabs/Image.prefab");
+        Debug.Log(objs.Length);
+
+        Debug.Log(AssetDatabase.IsValidFolder("Assets/Import/Prefabs"));
+
+        Image image = (Image)AssetDatabase.LoadAssetAtPath<Image>("Assets/Import/Prefabs/Image.prefab");
+        image.name = name;
+        Debug.Log(image.name);
+    }
 }
