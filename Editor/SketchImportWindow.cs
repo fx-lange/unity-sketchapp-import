@@ -19,7 +19,7 @@ public class SketchImportWindow : EditorWindow
     string spriteAssetGUID = null;
 
     //parent transform 
-    Transform rootTransform = null;
+    RectTransform rootTransform = null;
 
     //Create a Menu Item so we can open this window
     [MenuItem("Window/Sketch Import")]
@@ -49,7 +49,7 @@ public class SketchImportWindow : EditorWindow
         
         //ROOT TRANSFORM
         GUILayout.Label("Root:", EditorStyles.boldLabel);
-        rootTransform = EditorGUILayout.ObjectField(rootTransform, typeof(Transform),true) as Transform;
+        rootTransform = EditorGUILayout.ObjectField(rootTransform, typeof(RectTransform),true) as RectTransform;
 
         GUILayout.Space(10);
         //IMPORT
@@ -111,7 +111,7 @@ public class SketchImportWindow : EditorWindow
 
                 //parse json
                 Undo.RegisterFullObjectHierarchyUndo(rootTransform, "Import Layers");
-                Parse((JObject)json[0],rootTransform);
+                Parse((JObject)json[0],rootTransform,Vector2.zero);
 
                 //finish by refreshing all the assets
                 AssetDatabase.Refresh();
@@ -120,7 +120,7 @@ public class SketchImportWindow : EditorWindow
         }
     }
 
-    void Parse(JObject json,Transform parent)
+    void Parse(JObject json,RectTransform parent, Vector2 parentPos)
     {
         string imagePrefabPath = "Assets/Import/Prefabs/Image.prefab";
 
@@ -136,24 +136,16 @@ public class SketchImportWindow : EditorWindow
         image.name = name;
         image.rectTransform.SetParent(parent, false);
 
+        JToken jsonFrame = null;
+
+        //SPRITE AND SIZE
         JToken jsonImage = json["image"];
         if (jsonImage != null && jsonImage.Type != JTokenType.Null)
         {
 
             //layers.Add(name, image);
 
-            JToken jsonFrame = jsonImage["frame"];
-            if (jsonFrame != null)
-            {
-                float x = (float)jsonFrame["x"];
-                float y = (float)jsonFrame["y"];
-
-                image.rectTransform.anchoredPosition = new Vector2(x, -y);
-            }
-            else
-            {
-                image.name += " no frame";
-            }
+            jsonFrame = jsonImage["frame"];
 
             Sprite spr = CreateSprite(json["image"]);
             if (spr != null)
@@ -168,12 +160,33 @@ public class SketchImportWindow : EditorWindow
         }else
         {
             image.enabled = false;
+
+            jsonFrame = json["layerFrame"];
+            image.rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, (float)jsonFrame["width"]);
+            image.rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, (float)jsonFrame["height"]);
+
         }
 
+        //POSITION
+        if (jsonFrame == null)
+        {
+            Debug.LogError("json entry without frame");
+            return;
+        }
+
+        float x = (float)jsonFrame["x"];
+        float y = (float)jsonFrame["y"];
+
+        Vector2 globalPos = new Vector2(x, -y);
+        Vector2 localPos = globalPos - parentPos;
+
+        image.rectTransform.anchoredPosition = localPos;
+
+        //CHILDREN
         JArray children = (JArray)json["children"];
         for (int i = children.Count - 1; i >= 0; --i)
         {
-            Parse((JObject)children[i],image.transform);
+            Parse((JObject)children[i],image.rectTransform, globalPos);
         }
     }
 
