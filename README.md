@@ -22,6 +22,7 @@ From the export folder we are only interested in the `imported` subfolder, where
 * Open the plugin via `Window/Sketch Import
 * Select the `layers.json` from your *Sketch Export* (inside the `imported` subfolder as mentioned above).
 * Select an UI component (like Canvas,Panel,...) inside your scene as the *Root* for your imported UI layers.
+* Select the Image Prefab from the Import Package Prefabs folder.
 
 
 ## Dependencies

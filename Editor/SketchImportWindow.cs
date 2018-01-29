@@ -20,13 +20,16 @@ public class SketchImportWindow : EditorWindow
 
     //parent transform 
     RectTransform rootTransform = null;
+    
+    //image prefab
+    Image imagePrefab = null;
 
     //Create a Menu Item so we can open this window
     [MenuItem("Window/Sketch Import")]
     static void OpenImportWindow()
     {
         SketchImportWindow window = EditorWindow.GetWindow<SketchImportWindow>(false, "Sketch Import");
-        window.minSize = new Vector2(140, 130);
+        window.minSize = new Vector2(140, 170);
     }  
 
     void OnGUI()
@@ -50,6 +53,10 @@ public class SketchImportWindow : EditorWindow
         //ROOT TRANSFORM
         GUILayout.Label("Root:", EditorStyles.boldLabel);
         rootTransform = EditorGUILayout.ObjectField(rootTransform, typeof(RectTransform),true) as RectTransform;
+        
+         //ROOT TRANSFORM
+        GUILayout.Label("Image Prefab:", EditorStyles.boldLabel);
+        imagePrefab = EditorGUILayout.ObjectField(imagePrefab, typeof(Image),true) as Image;
 
         GUILayout.Space(10);
         //IMPORT
@@ -63,7 +70,7 @@ public class SketchImportWindow : EditorWindow
 
     bool IsFormValid()
     {
-        return rootTransform != null && !importFolder.Equals("");
+        return rootTransform != null && !importFolder.Equals("") && imagePrefab != null;
     }
 
     void OnSelectButton()
@@ -138,13 +145,8 @@ public class SketchImportWindow : EditorWindow
 
     void Parse(JObject json,RectTransform parent, Vector2 parentPos)
     {
-        string imagePrefabPath = "Assets/Import/Prefabs/Image.prefab";
-
         string name = (string)json["name"];
 
-        //load prefab from assets
-        Image imagePrefab = (Image)AssetDatabase.LoadAssetAtPath<Image>(imagePrefabPath);
-        
         //instantiate
         //Image image = PrefabUtility.InstantiatePrefab(imagePrefab) as Image; //still linked to the prefab
         Image image = Instantiate<Image>(imagePrefab);
