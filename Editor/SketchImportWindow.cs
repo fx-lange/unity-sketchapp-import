@@ -168,9 +168,16 @@ public class SketchImportWindow : EditorWindow
             Sprite spr = GetSprite(jsonImage);
             if (spr != null)
             {
+                
                 image.sprite = spr;
                 image.SetNativeSize();
-                image.color = new Color(255f, 255f, 255f, 50f); //?
+
+                JToken jsonVisible = json["visible"];
+                if (jsonVisible != null)
+                {
+                    float alpha = (bool)jsonVisible ? 1f : 0f;
+                    image.color = new Color(255f, 255f, 255f, alpha);
+                }
             }else
             {
                 image.enabled = false;
