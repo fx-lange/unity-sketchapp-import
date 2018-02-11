@@ -86,6 +86,12 @@ public class SketchImportWindow : EditorWindow
         {
             importFolder = Path.GetDirectoryName(jsonFile);
             jsonFileName = Path.GetFileName(jsonFile);
+            JArray json = PreParseJson();
+            
+            foreach(JToken token in json){
+                JObject artboard = (JObject)token;
+                Debug.Log("Artboard: " + artboard["name"]);
+            }
         }
     }
 
@@ -94,29 +100,21 @@ public class SketchImportWindow : EditorWindow
         if (!importFolder.Equals("") && rootTransform != null )
         {
 
-            string jsonPath = Path.Combine(importFolder, jsonFileName);
-         
-            if (File.Exists(jsonPath))
-            {
-                //folder to store sprites
-                if (!AssetDatabase.IsValidFolder("Assets/Imported"))
-                {
-                    AssetDatabase.CreateFolder("Assets","Imported");
-                }
-                spriteAssetGUID = AssetDatabase.CreateFolder("Assets/Imported", spriteAssetSubFolder);
-                
-                //read & parse text to json
-                string fullJsonAsText = File.ReadAllText(jsonPath);
-                JArray json = JArray.Parse(fullJsonAsText);
-
+            JArray json = PreParseJson();
+            if(json!=null){
                 //create sprites
-                PreCreateSprites((JObject)json[0]);
+                foreach(JToken artboard in json){
+                    PreCreateSprites((JObject)artboard);
+                }
+                 //this only takes the first artboard
                 AssetDatabase.SaveAssets();
                 AssetDatabase.Refresh();
 
-                //parse json
+                //parse json artboards
                 Undo.RegisterFullObjectHierarchyUndo(rootTransform, "Import Layers");
-                Parse((JObject)json[0],rootTransform,Vector2.zero);
+                foreach(JToken artboard in json){
+                    Parse((JObject)artboard,rootTransform,Vector2.zero);
+                }
 
                 //finish by refreshing all the assets
                 AssetDatabase.Refresh();
@@ -139,6 +137,27 @@ public class SketchImportWindow : EditorWindow
         for (int i = children.Count - 1; i >= 0; --i)
         {
             PreCreateSprites((JObject)children[i]);
+        }
+    }
+    
+    JArray PreParseJson(){
+        string jsonPath = Path.Combine(importFolder, jsonFileName);
+         
+        if (File.Exists(jsonPath))
+        {
+            //folder to store sprites
+            if (!AssetDatabase.IsValidFolder("Assets/Imported"))
+            {
+                AssetDatabase.CreateFolder("Assets","Imported");
+            }
+            spriteAssetGUID = AssetDatabase.CreateFolder("Assets/Imported", spriteAssetSubFolder);
+            
+            //read & parse text to json
+            string fullJsonAsText = File.ReadAllText(jsonPath);
+            JArray json = JArray.Parse(fullJsonAsText);
+            return json;
+        }else{
+            return null;
         }
     }
    
@@ -203,7 +222,7 @@ public class SketchImportWindow : EditorWindow
         float y = (float)jsonFrame["y"];
 
         Vector2 globalPos = new Vector2(x, -y);
-        Vector2 localPos = globalPos - parentPos;
+        Vector2 localPos = globalPos - parentPos; //TODO really needed? buggy for multiple artboards
 
         image.rectTransform.anchoredPosition = localPos;
 
