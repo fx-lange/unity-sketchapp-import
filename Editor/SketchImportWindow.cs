@@ -22,25 +22,26 @@ public class SketchImportWindow : EditorWindow
     RectTransform rootTransform = null;
     
     //image prefab
-    Image imagePrefab = null;
+    private Image imagePrefab = null;
 
     //Create a Menu Item so we can open this window
     [MenuItem("Window/Sketch Import")]
     static void OpenImportWindow()
     {
         SketchImportWindow window = EditorWindow.GetWindow<SketchImportWindow>(false, "Sketch Import");
-        window.minSize = new Vector2(140, 170);
+        window.minSize = new Vector2(140, 140);
+        
+        window.LoadImagePrefab();
     }  
 
     void OnGUI()
     {
-        ////TEST BUTTONS
-        //if (GUILayout.Button("Test Button", GUILayout.Height(30)))
-        //{
-        //    string guid = AssetDatabase.CreateFolder("Assets", importFolder);
-        //    string newFolderPath = AssetDatabase.GUIDToAssetPath(guid);
-        //    Debug.Log(newFolderPath);
-        //}
+        //TEST BUTTON
+        // if (GUILayout.Button("Test Button", GUILayout.Height(30)))
+        // {
+        
+        //     onTestButton();
+        // }
 
 
         //SOURCE
@@ -54,9 +55,9 @@ public class SketchImportWindow : EditorWindow
         GUILayout.Label("Root:", EditorStyles.boldLabel);
         rootTransform = EditorGUILayout.ObjectField(rootTransform, typeof(RectTransform),true) as RectTransform;
         
-         //ROOT TRANSFORM
-        GUILayout.Label("Image Prefab:", EditorStyles.boldLabel);
-        imagePrefab = EditorGUILayout.ObjectField(imagePrefab, typeof(Image),true) as Image;
+        //IMAGE PREFAB
+        // GUILayout.Label("Image Prefab:", EditorStyles.boldLabel);
+        // imagePrefab = EditorGUILayout.ObjectField(imagePrefab, typeof(Image),true) as Image;
 
         GUILayout.Space(10);
         //IMPORT
@@ -197,7 +198,7 @@ public class SketchImportWindow : EditorWindow
                     float alpha = (bool)jsonVisible ? 1f : 0f;
                     image.color = new Color(255f, 255f, 255f, alpha);
                 }
-            }else
+            }else 
             {
                 image.enabled = false;
             }
@@ -269,16 +270,24 @@ public class SketchImportWindow : EditorWindow
         string destFolder = AssetDatabase.GUIDToAssetPath(spriteAssetGUID);
         return Path.Combine(destFolder, imageFileName);
     }
+    
+    void LoadImagePrefab(){
+        var script = MonoScript.FromScriptableObject( this );
+        
+        var scriptPath = AssetDatabase.GetAssetPath( script );
+        string directoryPath = Path.GetDirectoryName(scriptPath);
+        
+        //absolute path from here
+        DirectoryInfo pluginDir = Directory.GetParent(directoryPath);
+        DirectoryInfo prefabsDir = pluginDir.GetDirectories("Prefabs")[0];
+        string imagePrefabPath = prefabsDir.GetFiles("Image.prefab")[0].FullName;
+        
+        string relativePath = imagePrefabPath.Replace(Application.dataPath,"Assets");
+        imagePrefab = (Image)AssetDatabase.LoadAssetAtPath<Image>(relativePath);
+    }
 
     void onTestButton()
     {
-        Object[] objs = AssetDatabase.LoadAllAssetsAtPath("Assets/Import/Prefabs/Image.prefab");
-        Debug.Log(objs.Length);
-
-        Debug.Log(AssetDatabase.IsValidFolder("Assets/Import/Prefabs"));
-
-        Image image = (Image)AssetDatabase.LoadAssetAtPath<Image>("Assets/Import/Prefabs/Image.prefab");
-        image.name = name;
-        Debug.Log(image.name);
+        //
     }
 }
