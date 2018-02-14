@@ -33,6 +33,21 @@ public class SketchImportWindow : EditorWindow
         
         window.LoadImagePrefab();
     }  
+    
+    void LoadImagePrefab(){
+        var script = MonoScript.FromScriptableObject( this );
+        
+        var scriptPath = AssetDatabase.GetAssetPath( script );
+        string directoryPath = Path.GetDirectoryName(scriptPath);
+        
+        //absolute path from here
+        DirectoryInfo pluginDir = Directory.GetParent(directoryPath);
+        DirectoryInfo prefabsDir = pluginDir.GetDirectories("Prefabs")[0];
+        string imagePrefabPath = prefabsDir.GetFiles("SketchImportImage.prefab")[0].FullName;
+        
+        string relativePath = imagePrefabPath.Replace(Application.dataPath,"Assets");
+        imagePrefab = (Image)AssetDatabase.LoadAssetAtPath<Image>(relativePath);
+    }
 
     void OnGUI()
     {
@@ -67,11 +82,6 @@ public class SketchImportWindow : EditorWindow
             OnImportButton();
         }
         GUI.enabled = true;
-    }
-
-    bool IsFormValid()
-    {
-        return rootTransform != null && !importFolder.Equals("") && imagePrefab != null;
     }
 
     void OnSelectButton()
@@ -127,8 +137,18 @@ public class SketchImportWindow : EditorWindow
 
         }
     }
+    
+    void onTestButton()
+    {
+        //
+    }
+    
+    private bool IsFormValid()
+    {
+        return rootTransform != null && !importFolder.Equals("") && imagePrefab != null;
+    }
 
-    void PreCreateSprites(JObject json)
+    private void PreCreateSprites(JObject json)
     {
         //SPRITE
         JToken jsonImage = json["image"];
@@ -145,7 +165,7 @@ public class SketchImportWindow : EditorWindow
         }
     }
     
-    void CreateSpriteFolder(){
+    private void CreateSpriteFolder(){
         //folder to store sprites
         if (!AssetDatabase.IsValidFolder("Assets/Imported"))
         {
@@ -154,7 +174,7 @@ public class SketchImportWindow : EditorWindow
         spriteAssetGUID = AssetDatabase.CreateFolder("Assets/Imported", spriteAssetSubFolder);
     }
     
-    JArray PreParseJson(){
+    private JArray PreParseJson(){
         string jsonPath = Path.Combine(importFolder, jsonFileName);
          
         if (File.Exists(jsonPath))
@@ -169,7 +189,7 @@ public class SketchImportWindow : EditorWindow
     }
    
 
-    void Parse(JObject json,RectTransform parent, Vector2 parentPos)
+    private void Parse(JObject json,RectTransform parent, Vector2 parentPos)
     {
         string name = (string)json["name"];
 
@@ -241,7 +261,7 @@ public class SketchImportWindow : EditorWindow
         }
     }
 
-    void CreateSprite(JToken jsonImage)
+    private void CreateSprite(JToken jsonImage)
     {
         // http://stackoverflow.com/questions/24066400/checking-for-empty-null-jtoken-in-a-jobject
         if (jsonImage != null && jsonImage.Type != JTokenType.Null)
@@ -262,38 +282,18 @@ public class SketchImportWindow : EditorWindow
         }
     }
 
-    Sprite GetSprite(JToken jsonImage)
+    private Sprite GetSprite(JToken jsonImage)
     {
         string localImagePath = (string)jsonImage["path"];
         string spriteLoc = GetSpriteLocation(localImagePath);
         return (Sprite)AssetDatabase.LoadAssetAtPath(spriteLoc, typeof(Sprite));
     }
 
-    string GetSpriteLocation(string localImagePath)
+    private string GetSpriteLocation(string localImagePath)
     {
         string imageFileName = Path.GetFileName(localImagePath);
 
         string destFolder = AssetDatabase.GUIDToAssetPath(spriteAssetGUID);
         return Path.Combine(destFolder, imageFileName);
-    }
-    
-    void LoadImagePrefab(){
-        var script = MonoScript.FromScriptableObject( this );
-        
-        var scriptPath = AssetDatabase.GetAssetPath( script );
-        string directoryPath = Path.GetDirectoryName(scriptPath);
-        
-        //absolute path from here
-        DirectoryInfo pluginDir = Directory.GetParent(directoryPath);
-        DirectoryInfo prefabsDir = pluginDir.GetDirectories("Prefabs")[0];
-        string imagePrefabPath = prefabsDir.GetFiles("SketchImportImage.prefab")[0].FullName;
-        
-        string relativePath = imagePrefabPath.Replace(Application.dataPath,"Assets");
-        imagePrefab = (Image)AssetDatabase.LoadAssetAtPath<Image>(relativePath);
-    }
-
-    void onTestButton()
-    {
-        //
     }
 }
