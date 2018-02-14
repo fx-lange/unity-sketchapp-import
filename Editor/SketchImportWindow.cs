@@ -45,7 +45,7 @@ public class SketchImportWindow : EditorWindow
 
 
         //SOURCE
-        GUILayout.Label("Sketch Export:",EditorStyles.boldLabel);
+        GUILayout.Label("Sketch Export (layers.json):",EditorStyles.boldLabel);
         if (GUILayout.Button(importFolder, EditorStyles.objectField))
         {
             OnSelectButton();
@@ -280,7 +280,7 @@ public class SketchImportWindow : EditorWindow
         //absolute path from here
         DirectoryInfo pluginDir = Directory.GetParent(directoryPath);
         DirectoryInfo prefabsDir = pluginDir.GetDirectories("Prefabs")[0];
-        string imagePrefabPath = prefabsDir.GetFiles("Image.prefab")[0].FullName;
+        string imagePrefabPath = prefabsDir.GetFiles("SketchImportImage.prefab")[0].FullName;
         
         string relativePath = imagePrefabPath.Replace(Application.dataPath,"Assets");
         imagePrefab = (Image)AssetDatabase.LoadAssetAtPath<Image>(relativePath);

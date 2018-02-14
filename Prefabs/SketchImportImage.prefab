@@ -22,7 +22,7 @@ GameObject:
   - component: {fileID: 222522583208861056}
   - component: {fileID: 114277393385803916}
   m_Layer: 5
-  m_Name: Image
+  m_Name: SketchImportImage
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
