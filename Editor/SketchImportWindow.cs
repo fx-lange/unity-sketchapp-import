@@ -103,6 +103,10 @@ public class SketchImportWindow : EditorWindow
 
             JArray json = PreParseJson();
             if(json!=null){
+                
+                //folder to store sprites
+                CreateSpriteFolder();
+                
                 //create sprites
                 foreach(JToken artboard in json){
                     PreCreateSprites((JObject)artboard);
@@ -141,18 +145,20 @@ public class SketchImportWindow : EditorWindow
         }
     }
     
+    void CreateSpriteFolder(){
+        //folder to store sprites
+        if (!AssetDatabase.IsValidFolder("Assets/Imported"))
+        {
+            AssetDatabase.CreateFolder("Assets","Imported");
+        }
+        spriteAssetGUID = AssetDatabase.CreateFolder("Assets/Imported", spriteAssetSubFolder);
+    }
+    
     JArray PreParseJson(){
         string jsonPath = Path.Combine(importFolder, jsonFileName);
          
         if (File.Exists(jsonPath))
         {
-            //folder to store sprites
-            if (!AssetDatabase.IsValidFolder("Assets/Imported"))
-            {
-                AssetDatabase.CreateFolder("Assets","Imported");
-            }
-            spriteAssetGUID = AssetDatabase.CreateFolder("Assets/Imported", spriteAssetSubFolder);
-            
             //read & parse text to json
             string fullJsonAsText = File.ReadAllText(jsonPath);
             JArray json = JArray.Parse(fullJsonAsText);
