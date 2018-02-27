@@ -54,7 +54,6 @@ public class SketchImportWindow : EditorWindow
         //TEST BUTTON
         // if (GUILayout.Button("Test Button", GUILayout.Height(30)))
         // {
-        
         //     onTestButton();
         // }
 
@@ -84,7 +83,7 @@ public class SketchImportWindow : EditorWindow
         GUI.enabled = true;
     }
 
-    void OnSelectButton()
+    private void OnSelectButton()
     {
         //string path = EditorUtility.OpenFolderPanel("Select folder containing the json", importFolder, "");
         //if (!path.Equals(""))
@@ -104,9 +103,13 @@ public class SketchImportWindow : EditorWindow
                 Debug.Log("Artboard: " + artboard["name"]);
             }
         }
+        
+        if(!imagePrefab){
+            LoadImagePrefab();
+        }
     }
 
-    void OnImportButton()
+    private void OnImportButton()
     {
         if (!importFolder.Equals("") && rootTransform != null )
         {
@@ -138,7 +141,7 @@ public class SketchImportWindow : EditorWindow
         }
     }
     
-    void onTestButton()
+    private void onTestButton()
     {
         //
     }
@@ -189,7 +192,7 @@ public class SketchImportWindow : EditorWindow
     }
    
 
-    private void Parse(JObject json,RectTransform parent, Vector2 parentPos)
+    private void Parse(JObject json, RectTransform parent, Vector2 parentPos)
     {
         string name = (string)json["name"];
 
@@ -224,13 +227,16 @@ public class SketchImportWindow : EditorWindow
                     float alpha = (bool)jsonVisible ? 1f : 0f;
                     image.color = new Color(255f, 255f, 255f, alpha);
                 }
-            }else 
-            {
-                image.enabled = false;
             }
         }else
         {
-            image.enabled = false;
+            if("artboard" == (string)json["kind"])
+            {
+                image.color = ParseColor((string)json["backgroundColor"]);
+            }else
+            {
+                image.enabled = false;
+            }
 
             jsonFrame = json["layerFrame"];
             image.rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, (float)jsonFrame["width"]);
@@ -295,5 +301,21 @@ public class SketchImportWindow : EditorWindow
 
         string destFolder = AssetDatabase.GUIDToAssetPath(spriteAssetGUID);
         return Path.Combine(destFolder, imageFileName);
+    }
+    
+    private Color ParseColor(string colorString){
+        // "rgba(255, 255, 255, 1)
+        string reduced = colorString.Replace("rgba(","").Replace(")","");
+        string[] values = reduced.Split(',');
+        float r = 0;
+        float.TryParse(values[0], out r);
+        float g = 0;
+        float.TryParse(values[1], out g);
+        float b = 0;
+        float.TryParse(values[2], out b);
+        float a = 0;
+        float.TryParse(values[3], out a);
+        
+        return new Color(r,g,b,a);   
     }
 }
