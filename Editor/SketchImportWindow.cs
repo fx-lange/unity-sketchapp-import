@@ -39,13 +39,16 @@ public class SketchImportWindow : EditorWindow
         
         var scriptPath = AssetDatabase.GetAssetPath( script );
         string directoryPath = Path.GetDirectoryName(scriptPath);
-        
+
         //absolute path from here
-        DirectoryInfo pluginDir = Directory.GetParent(directoryPath);
-        DirectoryInfo prefabsDir = pluginDir.GetDirectories("Prefabs")[0];
-        string imagePrefabPath = prefabsDir.GetFiles("SketchImportImage.prefab")[0].FullName;
-        
-        string relativePath = imagePrefabPath.Replace(Application.dataPath,"Assets");
+        //DirectoryInfo pluginDir = Directory.GetParent(directoryPath);
+        //DirectoryInfo prefabsDir = pluginDir.GetDirectories("Prefabs")[0];
+        //string imagePrefabPath = prefabsDir.GetFiles("SketchImportImage.prefab")[0].FullName;
+        //string relativePath = imagePrefabPath.Replace(Application.dataPath,"Assets");
+
+        string pluginDir = Path.GetDirectoryName(directoryPath);
+        string prefabsDir = pluginDir + "/Prefabs";
+        string relativePath = prefabsDir + "/SketchImportImage.prefab";
         imagePrefab = (Image)AssetDatabase.LoadAssetAtPath<Image>(relativePath);
     }
 
