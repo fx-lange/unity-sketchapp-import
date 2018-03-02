@@ -55,11 +55,7 @@ public class SketchImportWindow : EditorWindow
     void OnGUI()
     {
         //TEST BUTTON
-        // if (GUILayout.Button("Test Button", GUILayout.Height(30)))
-        // {
-        //     onTestButton();
-        // }
-
+        onTestButton();
 
         //SOURCE
         GUILayout.Label("Sketch Export (layers.json):",EditorStyles.boldLabel);
@@ -146,9 +142,31 @@ public class SketchImportWindow : EditorWindow
     
     private void onTestButton()
     {
-        //
-    }
     
+         if (GUILayout.Button("Test Button", GUILayout.Height(30)))
+        {
+            string importPath = "C:/Users/lange/Documents/Unity/_Assets/FramerPrototypes/Roulette/MixedFidelity3.framer/imported/test@1x/images/Layer-selected-mtg3oeiy.png";
+     
+            string path = "Assets/ExampleSprite3D.png";
+    
+            File.Copy(importPath, path);
+            AssetDatabase.Refresh();
+            //AssetDatabase.AddObjectToAsset(sprite, path); //needed?
+            AssetDatabase.SaveAssets();
+
+            TextureImporter ti = AssetImporter.GetAtPath(path) as TextureImporter;
+
+            //ti.spritePixelsPerUnit = sprite.pixelsPerUnit;
+            ti.textureType = TextureImporterType.Sprite;
+            //ti.mipmapEnabled = false;
+            EditorUtility.SetDirty(ti);
+            ti.SaveAndReimport();
+
+
+            //TODO reimport folder or everyone on GetSprite?
+        }
+    }
+
     private bool IsFormValid()
     {
         return rootTransform != null && !importFolder.Equals("") && imagePrefab != null;
@@ -279,8 +297,7 @@ public class SketchImportWindow : EditorWindow
 
             if (localImagePath != null)
             {
-                string imagePath = Path.Combine(importFolder, localImagePath);
-                
+                string imagePath = Path.Combine(importFolder, localImagePath); //TODO combine uses an \ under windows
                 if (File.Exists(imagePath))
                 {
 
@@ -322,3 +339,4 @@ public class SketchImportWindow : EditorWindow
         return new Color(r,g,b,a);   
     }
 }
+
