@@ -16,7 +16,7 @@ public class SketchImportWindow : EditorWindow
 
     //private members for sprites and images
     string spriteAssetSubFolder = "sprites";
-    string spriteAssetGUID = null;
+    string spriteFolderPath = null;
 
     //parent transform 
     RectTransform rootTransform = null;
@@ -39,12 +39,6 @@ public class SketchImportWindow : EditorWindow
         
         var scriptPath = AssetDatabase.GetAssetPath( script );
         string directoryPath = Path.GetDirectoryName(scriptPath);
-
-        //absolute path from here
-        //DirectoryInfo pluginDir = Directory.GetParent(directoryPath);
-        //DirectoryInfo prefabsDir = pluginDir.GetDirectories("Prefabs")[0];
-        //string imagePrefabPath = prefabsDir.GetFiles("SketchImportImage.prefab")[0].FullName;
-        //string relativePath = imagePrefabPath.Replace(Application.dataPath,"Assets");
 
         string pluginDir = Path.GetDirectoryName(directoryPath);
         string prefabsDir = pluginDir + "/Prefabs";
@@ -84,12 +78,6 @@ public class SketchImportWindow : EditorWindow
 
     private void OnSelectButton()
     {
-        //string path = EditorUtility.OpenFolderPanel("Select folder containing the json", importFolder, "");
-        //if (!path.Equals(""))
-        //{
-        //    importFolder = path;
-        //}
-
         string jsonFile = EditorUtility.OpenFilePanel("Select Json", importFolder, "json");
         if (!jsonFile.Equals("") && jsonFile.EndsWith(".json"))
         {
@@ -110,25 +98,24 @@ public class SketchImportWindow : EditorWindow
 
     private void OnImportButton()
     {
-        if (!importFolder.Equals("") && rootTransform != null )
+        if (IsFormValid())
         {
 
             JArray json = PreParseJson();
             if(json!=null){
                 
                 //folder to store sprites
-                string spriteFolderPath = CreateSpriteFolder(spriteAssetSubFolder);
+                spriteFolderPath = SpriteImport.CreateFolder(spriteAssetSubFolder);
                 
                 //create sprites
                 foreach(JToken artboard in json){
                     PreCreateSprites((JObject)artboard);
                 }
-                 //this only takes the first artboard
                 AssetDatabase.SaveAssets();
                 AssetDatabase.Refresh();
 
                 //make sure that all textures are imported as sprites (even in 3d)
-                SetTexturesToSprites(spriteFolderPath);
+                SpriteImport.SetTexturesToSprites(spriteFolderPath);
 
                 //parse json artboards
                 Undo.RegisterFullObjectHierarchyUndo(rootTransform, "Import Layers");
@@ -140,37 +127,6 @@ public class SketchImportWindow : EditorWindow
                 AssetDatabase.Refresh();
             }
 
-        }
-    }
-    
-    private void OnTestButton()
-    {
-    
-         if (GUILayout.Button("Test Button", GUILayout.Height(30)))
-        {
-            //string importPath = "C:/Users/lange/Documents/Unity/_Assets/FramerPrototypes/Roulette/MixedFidelity3.framer/imported/test@1x/images/Layer-selected-mtg3oeiy.png";
-
-            //string path = "Assets/ExampleSprite3D.png";
-
-            //File.Copy(importPath, path);
-            //AssetDatabase.Refresh();
-            ////AssetDatabase.AddObjectToAsset(sprite, path); //needed?
-            //AssetDatabase.SaveAssets();
-
-            //TextureImporter ti = AssetImporter.GetAtPath(path) as TextureImporter;
-
-            ////ti.spritePixelsPerUnit = sprite.pixelsPerUnit;
-            //ti.textureType = TextureImporterType.Sprite;
-            ////ti.mipmapEnabled = false;
-            //EditorUtility.SetDirty(ti);
-            //ti.SaveAndReimport();
-
-            //AssetImporter.
-
-
-            //TODO reimport folder or everyone on GetSprite?
-
-            SetTexturesToSprites("Assets/Imported/sprites 11");
         }
     }
 
@@ -185,7 +141,8 @@ public class SketchImportWindow : EditorWindow
         JToken jsonImage = json["image"];
         if (jsonImage != null && jsonImage.Type != JTokenType.Null)
         {
-            CreateSprite(jsonImage);
+            string localImagePath = (string)jsonImage["path"];
+            SpriteImport.CreateSprite(localImagePath, importFolder, spriteFolderPath);
         }
 
         //CHILDREN
@@ -195,18 +152,7 @@ public class SketchImportWindow : EditorWindow
             PreCreateSprites((JObject)children[i]);
         }
     }
-    
-    private string CreateSpriteFolder(string spriteFolderName){
-        //folder to store sprites
-        if (!AssetDatabase.IsValidFolder("Assets/Imported"))
-        {
-            AssetDatabase.CreateFolder("Assets","Imported");
-        }
-        spriteAssetGUID = AssetDatabase.CreateFolder("Assets/Imported", spriteFolderName);
-
-        return AssetDatabase.GUIDToAssetPath(spriteAssetGUID);
-    }
-    
+      
     private JArray PreParseJson(){
         string jsonPath = Path.Combine(importFolder, jsonFileName);
          
@@ -221,7 +167,6 @@ public class SketchImportWindow : EditorWindow
         }
     }
    
-
     private void Parse(JObject json, RectTransform parent, Vector2 parentPos)
     {
         string name = (string)json["name"];
@@ -244,7 +189,8 @@ public class SketchImportWindow : EditorWindow
 
             jsonFrame = jsonImage["frame"];
 
-            Sprite spr = GetSprite(jsonImage);
+            string localImagePath = (string)jsonImage["path"];
+            Sprite spr = SpriteImport.GetSprite(localImagePath, spriteFolderPath);
             if (spr != null)
             {
                 
@@ -271,7 +217,6 @@ public class SketchImportWindow : EditorWindow
             jsonFrame = json["layerFrame"];
             image.rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, (float)jsonFrame["width"]);
             image.rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, (float)jsonFrame["height"]);
-
         }
 
         //POSITION
@@ -297,68 +242,6 @@ public class SketchImportWindow : EditorWindow
         }
     }
 
-    private void CreateSprite(JToken jsonImage)
-    {
-        // http://stackoverflow.com/questions/24066400/checking-for-empty-null-jtoken-in-a-jobject
-        if (jsonImage != null && jsonImage.Type != JTokenType.Null)
-        {
-            string localImagePath = (string)jsonImage["path"];
-
-            if (localImagePath != null)
-            {
-                string imagePath = Path.Combine(importFolder, localImagePath); //TODO combine uses an \ under windows
-                if (File.Exists(imagePath))
-                {
-
-                    string spriteDest = GetSpriteLocation(localImagePath);
-                    File.Copy(imagePath, spriteDest);
-                }
-            }
-        }
-    }
-
-    private void SetTexturesToSprites(string folderPath)
-    {
-        bool dirty = false;
-        string[] assetGUIDs = AssetDatabase.FindAssets("", new string[] { folderPath });
-        foreach (string guid in assetGUIDs)
-        {
-            string path = AssetDatabase.GUIDToAssetPath(guid);
-            TextureImporter ti = AssetImporter.GetAtPath(path) as TextureImporter;
-
-            if (ti.textureType != TextureImporterType.Sprite)
-            {
-                ti.textureType = TextureImporterType.Sprite;
-                dirty = true;
-            }
-            //ti.mipmapEnabled = false;
-            //EditorUtility.SetDirty(ti);
-            //ti.SaveAndReimport(); //takes to long if we do it one by one
-        }
-
-        //force reimport for sprites in 3D
-        if (dirty)
-        {
-            AssetDatabase.ImportAsset(folderPath, ImportAssetOptions.ForceUpdate | ImportAssetOptions.ImportRecursive);
-            Debug.Log("Reimported all textures as sprites");
-        }
-    }
-
-    private Sprite GetSprite(JToken jsonImage)
-    {
-        string localImagePath = (string)jsonImage["path"];
-        string spriteLoc = GetSpriteLocation(localImagePath);
-        return (Sprite)AssetDatabase.LoadAssetAtPath(spriteLoc, typeof(Sprite));
-    }
-
-    private string GetSpriteLocation(string localImagePath)
-    {
-        string imageFileName = Path.GetFileName(localImagePath);
-
-        string destFolder = AssetDatabase.GUIDToAssetPath(spriteAssetGUID);
-        return Path.Combine(destFolder, imageFileName);
-    }
-    
     private Color ParseColor(string colorString){
         // "rgba(255, 255, 255, 1)
         string reduced = colorString.Replace("rgba(","").Replace(")","");
@@ -373,6 +256,36 @@ public class SketchImportWindow : EditorWindow
         float.TryParse(values[3], out a);
         
         return new Color(r,g,b,a);   
+    }
+
+    private void OnTestButton()
+    {
+        if (GUILayout.Button("Test Button", GUILayout.Height(30)))
+        {
+            //string importPath = "C:/Users/lange/Documents/Unity/_Assets/FramerPrototypes/Roulette/MixedFidelity3.framer/imported/test@1x/images/Layer-selected-mtg3oeiy.png";
+
+            //string path = "Assets/ExampleSprite3D.png";
+
+            //File.Copy(importPath, path);
+            //AssetDatabase.Refresh();
+            ////AssetDatabase.AddObjectToAsset(sprite, path); //needed?
+            //AssetDatabase.SaveAssets();
+
+            //TextureImporter ti = AssetImporter.GetAtPath(path) as TextureImporter;
+
+            ////ti.spritePixelsPerUnit = sprite.pixelsPerUnit;
+            //ti.textureType = TextureImporterType.Sprite;
+            ////ti.mipmapEnabled = false;
+            //EditorUtility.SetDirty(ti);
+            //ti.SaveAndReimport();
+
+            //AssetImporter.
+
+
+            //TODO reimport folder or everyone on GetSprite?
+
+            SpriteImport.SetTexturesToSprites("Assets/Imported/sprites 11");
+        }
     }
 }
 
