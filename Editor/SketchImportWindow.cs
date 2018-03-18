@@ -197,11 +197,16 @@ public class SketchImportWindow : EditorWindow
                 image.sprite = spr;
                 image.SetNativeSize();
 
+                //visibility (invisible -> disabled image component)
                 JToken jsonVisible = json["visible"];
                 if (jsonVisible != null)
                 {
-                    float alpha = (bool)jsonVisible ? 1f : 0f;
-                    image.color = new Color(255f, 255f, 255f, alpha);
+                    //float alpha = (bool)jsonVisible ? 1f : 0f;
+                    //image.color = new Color(255f, 255f, 255f, alpha);
+                    if(!(bool)jsonVisible)
+                    {
+                        image.enabled = false;
+                    }
                 }
             }
         }else
