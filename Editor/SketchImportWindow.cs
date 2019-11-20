@@ -13,6 +13,7 @@ public class SketchImportWindow : EditorWindow
     //private members for parsing the json
     string jsonFileName = "layers.json";
     string importFolder = "";
+    float importScale = 1f;
 
     //private members for sprites and images
     string spriteAssetSubFolder = "sprites";
@@ -57,6 +58,10 @@ public class SketchImportWindow : EditorWindow
         {
             OnSelectButton();
         }
+
+        //SCALE
+        GUILayout.Label("Scale:", EditorStyles.boldLabel);
+        importScale = EditorGUILayout.FloatField(importScale, EditorStyles.objectField);
         
         //ROOT TRANSFORM
         GUILayout.Label("Root:", EditorStyles.boldLabel);
@@ -72,6 +77,7 @@ public class SketchImportWindow : EditorWindow
         if (GUILayout.Button("Import", GUILayout.Height(25)))
         {
             OnImportButton();
+            Debug.Log("Set import scale to " + importScale);
         }
         GUI.enabled = true;
     }
@@ -231,8 +237,8 @@ public class SketchImportWindow : EditorWindow
             return;
         }
 
-        float x = (float)jsonFrame["x"];
-        float y = (float)jsonFrame["y"];
+        float x = (float)jsonFrame["x"] * importScale;
+        float y = (float)jsonFrame["y"] * importScale;
 
         Vector2 globalPos = new Vector2(x, -y);
         Vector2 localPos = globalPos - parentPos; //TODO really needed? buggy for multiple artboards
