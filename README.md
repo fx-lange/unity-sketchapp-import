@@ -41,7 +41,7 @@ If you never used the Sketch Framer workflow checkout some of guides on Medium l
 * Open the plugin via `Window/Sketch Import
 * Select the `layers.json` from your *Sketch Export* (inside the `imported` subfolder as mentioned above).
 * Select an UI component (like Canvas,Panel,...) inside your scene as the *Root* for your imported UI layers.
-** Note: Selecting Canvas allows you to use "Scale With Screen Size" as the UI scale mode, where the reference resolution can be adjusted so the Sketch file resolution matches the Unity resolution. 
+* Note: Selecting Canvas allows you to use "Scale With Screen Size" as the UI scale mode, where the reference resolution can be adjusted so the Sketch file resolution matches the Unity resolution. 
 
 
 ## Dependencies
